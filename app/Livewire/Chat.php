@@ -5,48 +5,47 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Events\ChatEvent;
 use App\Events\UserStatusUpdated;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redis;
 
-
 class Chat extends Component
 {
-
     public $newMessage;
     public $messages = [];
     public $user;
-    public $onlineUsers = [];
-
 
     public function mount()
     {
         $this->user = Auth::user();
-
-
         $this->messages = $this->fetchMessagesFromRedis();
 
-        $this->updateOnlineStatus('online');
+        if ($this->user) {
+            $this->updateOnlineStatus('online');
+        }
     }
 
+    public function destroy()
+    {
+        if ($this->user) {
+            $this->updateOnlineStatus('offline');
+        }
+    }
 
     public function handleMessageSubmission()
     {
         $validateNewMessage = $this->validateNewMessage();
 
         $this->pushMessageToRedis($validateNewMessage);
-        broadcast(new ChatEvent($this->user, $this->newMessage));
+        broadcast(new ChatEvent($this->user, $this->newMessage))->toOthers();
 
         $this->newMessage = '';
     }
 
-
     public function render()
     {
         $this->messages = $this->fetchMessagesFromRedis();
-        return view('livewire.chat', ['messages' => $this->messages, 'onlineUsers' => $this->onlineUsers]);
+        return view('livewire.chat', ['messages' => $this->messages]);
     }
-
 
     public function validateNewMessage()
     {
@@ -55,46 +54,30 @@ class Chat extends Component
         ]);
     }
 
-
     public function pushMessageToRedis($validateMessage)
     {
+        $chatKey = 'public_chat';
+
         Redis::multi()
-            ->lpush('chat', json_encode([
+            ->lpush($chatKey, json_encode([
                 'body' => $validateMessage['newMessage'],
                 'user' => $this->user->name
             ]))
-            ->ltrim('chat', 0, 10)
+            ->ltrim($chatKey, 0, 5)
             ->exec();
     }
 
-
     private function fetchMessagesFromRedis()
     {
-        $messages = Redis::lrange('chat', 0, -1);
+        $chatKey = 'public_chat'; // کلید عمومی برای چت عمومی
+        $messages = Redis::lrange($chatKey, 0, -1); // بازیابی تمام پیام‌ها
         return array_map(function ($message) {
             return json_decode($message);
-            Log::info($messages);
         }, $messages);
     }
-
-    public function __destruct()
-    {
-        if ($this->user) {
-            broadcast(new UserStatusUpdated($this->user, 'offline'));
-        }
-    }
-
+    
     private function updateOnlineStatus($status)
     {
-        $key = 'online_users';
-        $users = Redis::hgetall($key);
-
-        if ($status === 'online') {
-            Redis::hset($key, $this->user->id, $this->user->name);
-        } else {
-            Redis::hdel($key, $this->user->id);
-        }
-
-        broadcast(new UserStatusUpdated($this->user, $status));
+        broadcast(new UserStatusUpdated($this->user, $status))->toOthers();
     }
 }

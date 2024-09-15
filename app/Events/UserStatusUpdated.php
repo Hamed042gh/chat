@@ -2,8 +2,6 @@
 
 namespace App\Events;
 
-
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -23,13 +21,11 @@ class UserStatusUpdated implements ShouldBroadcast
         $this->status = $status;
     }
 
-
     public function broadcastOn()
     {
-        return new PresenceChannel('chat.' . $this->user->id);
+        return new PresenceChannel('chat-status' . $this->user->id);
     }
 
-    //event
     public function broadcastAs()
     {
         return 'UserStatusUpdated';
@@ -37,13 +33,10 @@ class UserStatusUpdated implements ShouldBroadcast
 
     public function broadcastWith()
     {
-        $key = 'online_users';
-        $onlineUsers = Redis::hgetall($key);
 
         return [
             'user' => $this->user,
-            'status' => $this->status,
-            'onlineUsers' => $onlineUsers,
+            'status' => $this->status
         ];
     }
 }

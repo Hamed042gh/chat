@@ -3,10 +3,11 @@
 namespace App\Events;
 
 use App\Models\User;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 
@@ -25,11 +26,9 @@ class ChatEvent implements ShouldBroadcast
     }
 
     //channel
-    public function broadcastOn(): array
+    public function broadcastOn()
     {
-        return [
-            new PresenceChannel('chat.' . $this->user->id),
-        ];
+        return new Channel('chat');
     }
     //event
     public function broadcastAs()

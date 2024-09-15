@@ -14,4 +14,5 @@ class ChatController extends Controller
       Gate::authorize('viewAny', $user);
       return view('chat.index', compact('user'));
    }
+   
 }
