@@ -1,4 +1,3 @@
-
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
 
@@ -12,18 +11,14 @@ window.Echo = new Echo({
     forceTLS: true,
 });
 
-
-window.Echo.channel("chat")
-    .listen(".ChatEvent", (e) => {
-        console.log("New message event received:", e);
-        const messageContainer = document.getElementById("messages");
-        const newMessage = document.createElement("div");
-        newMessage.className = "message p-2 bg-white rounded-lg shadow mb-2";
-        newMessage.textContent = `${e.user.name}: ${e.message}`;
-        messageContainer.appendChild(newMessage);
-        messageContainer.scrollTop = messageContainer.scrollHeight;
-    });
-
+window.Echo.channel("chat").listen(".ChatEvent", (e) => {
+    const messageContainer = document.getElementById("messages");
+    const newMessage = document.createElement("div");
+    newMessage.className = "message p-2 bg-white rounded-lg shadow mb-2";
+    newMessage.textContent = `${e.user.name}: ${e.message}`;
+    messageContainer.appendChild(newMessage);
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+});
 
 // اتصال به کانال `chat-status`
 window.Echo.join("chat-status")

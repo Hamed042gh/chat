@@ -22,7 +22,7 @@
             <div class="flex flex-col space-y-4">
                 <textarea wire:model="newMessage" wire:keydown.enter="handleMessageSubmission" placeholder="Type your message..."
                     class="w-full p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300" rows="4"></textarea>
-                <button type="submit"
+                <button type="submit" wire:click="handleMessageSubmission"
                     class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300">
                     Send
                 </button>
